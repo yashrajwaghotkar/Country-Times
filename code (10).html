@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live World Clock & Weather Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS Styles --- */
+        :root {
+            --bg-clear-start: #4dabff;
+            --bg-clear-end: #87cefa;
+            --bg-clouds-start: #bdc3c7;
+            --bg-clouds-end: #dee2e6;
+            --bg-rain-start: #6c757d;
+            --bg-rain-end: #adb5bd;
+            --bg-snow-start: #e0e0e0;
+            --bg-snow-end: #ffffff;
+             --bg-thunderstorm-start: #343a40;
+            --bg-thunderstorm-end: #6c757d;
+            --bg-mist-start: #adb5bd;
+            --bg-mist-end: #ced4da;
+            --bg-default-start: #6dd5ed;
+            --bg-default-end: #2193b0;
+
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --text-dark: #212529;
+            --text-light: #495057;
+            --primary-color: #007bff;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --loader-color: #007bff;
+            --error-color: #dc3545;
+            --select-border: #ced4da;
+            --select-focus-border: #80bdff;
+            --select-bg: #ffffff;
+            --button-bg: #007bff;
+            --button-hover-bg: #0056b3;
+            --button-text: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, var(--bg-default-start), var(--bg-default-end));
+            transition: background 0.8s ease-in-out;
+        }
+
+        /* Weather Backgrounds (same as before) */
+        body.weather-clear { background: linear-gradient(135deg, var(--bg-clear-start), var(--bg-clear-end)); }
+        body.weather-clouds { background: linear-gradient(135deg, var(--bg-clouds-start), var(--bg-clouds-end)); }
+        body.weather-rain, body.weather-drizzle { background: linear-gradient(135deg, var(--bg-rain-start), var(--bg-rain-end)); }
+        body.weather-snow { background: linear-gradient(135deg, var(--bg-snow-start), var(--bg-snow-end)); }
+        body.weather-thunderstorm { background: linear-gradient(135deg, var(--bg-thunderstorm-start), var(--bg-thunderstorm-end)); }
+        body.weather-mist, body.weather-fog, body.weather-haze, body.weather-smoke, body.weather-dust, body.weather-sand, body.weather-ash, body.weather-squall, body.weather-tornado {
+             background: linear-gradient(135deg, var(--bg-mist-start), var(--bg-mist-end));
+         }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 35px 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            text-align: center;
+            max-width: 580px;
+            width: 100%;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        h1 {
+            color: var(--text-dark);
+            margin-bottom: 30px;
+            font-size: 2.1em;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column; /* Stack label/select and button */
+            align-items: center; /* Center items horizontally */
+            margin-bottom: 25px; /* Space below controls */
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-light);
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        /* Select Styling */
+        select#country-select {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            padding: 14px 20px;
+            padding-right: 50px;
+            font-size: 1rem;
+            font-weight: 400;
+             font-family: 'Poppins', sans-serif;
+            line-height: 1.5;
+            color: var(--text-dark);
+            background-color: var(--select-bg);
+            background-clip: padding-box;
+            border: 1px solid var(--select-border);
+            border-radius: 0.5rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22292.4%22 height%3D%22292.4%22%3E%3Cpath fill%3D%22%236c757d%22 d%3D%22M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-5 0-9.3 1.8-12.9 5.4A17.6 17.6 0 0 0 0 82.2c0 5 1.8 9.3 5.4 12.9l128 127.9c3.6 3.6 7.8 5.4 12.8 5.4s9.2-1.8 12.8-5.4L287 95c3.5-3.5 5.4-7.8 5.4-12.8 0-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 10px 10px;
+            cursor: pointer;
+            margin-bottom: 15px; /* Space between select and button */
+        }
+        select#country-select:focus {
+            border-color: var(--select-focus-border);
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+        }
+        select#country-select option { padding: 10px; font-family: 'Poppins', sans-serif; }
+
+        /* Refresh Button Styling */
+        button#refresh-button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 0.5rem; /* Match select */
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex; /* Align icon and text */
+            align-items: center;
+            gap: 8px; /* Space between icon and text */
+             font-family: 'Poppins', sans-serif;
+        }
+        button#refresh-button:hover {
+            background-color: var(--button-hover-bg);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+        button#refresh-button:active {
+            background-color: #004a9e; /* Darker active state */
+        }
+        button#refresh-button:disabled {
+             background-color: #cccccc;
+             cursor: not-allowed;
+             box-shadow: none;
+         }
+         .refresh-icon {
+             font-size: 1.2em; /* Make icon slightly larger */
+         }
+
+
+        .info-display {
+            margin-top: 15px; /* Reduced space above display */
+            padding: 30px;
+            background-color: rgba(248, 249, 250, 0.85);
+            border-radius: 12px;
+            text-align: left;
+            line-height: 2;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        .info-display div { margin-bottom: 15px; font-size: 1.1em; color: var(--text-dark); display: flex; align-items: center; font-weight: 300; }
+        .info-display div:last-child { margin-bottom: 0; }
+        .info-display strong { color: var(--primary-color); min-width: 100px; display: inline-block; font-weight: 600; margin-right: 15px; }
+        .info-display span { font-weight: 400; word-wrap: break-word; flex-grow: 1; color: var(--text-light); }
+        .weather-info span { display: flex; align-items: center; }
+        .weather-emoji { font-size: 1.5em; margin-right: 10px; line-height: 1; }
+
+        .error { color: var(--error-color); font-weight: 600; margin-top: 20px; font-size: 1em; }
+
+        /* Loader */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--loader-color); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-container { height: 30px; text-align: center; margin-top: 5px; margin-bottom: 20px; } /* Adjusted margins */
+        .loader.hidden { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Live World Clock & Weather</h1>
+
+        <div class="controls">
+            <label for="country-select">Select Location:</label>
+            <select id="country-select">
+                <option value="">Select...</option>
+                <!-- Options with flags added by JavaScript -->
+            </select>
+            <button id="refresh-button" disabled>
+                 <span class="refresh-icon">🔄</span> Refresh Data
+             </button>
+        </div>
+
+        <div class="loader-container">
+             <div class="loader hidden"></div>
+        </div>
+
+        <div id="info-display" class="info-display">
+            <div id="country-name"><strong>Country:</strong> <span>-</span></div>
+            <div id="time"><strong>Time:</strong> <span id="live-time">-</span></div> <!-- Added ID for live time -->
+            <div id="date"><strong>Date:</strong> <span>-</span></div>
+            <div id="timezone"><strong>Timezone:</strong> <span>-</span></div>
+            <div id="weather" class="weather-info"><strong>Weather:</strong> <span><span class="weather-emoji"></span><span class="weather-text">-</span></span></div>
+            <div id="temperature"><strong>Temp:</strong> <span>-</span></div>
+        </div>
+         <div id="error-message" class="error"></div>
+    </div>
+
+    <script>
+        // --- JavaScript Code ---
+        const countrySelect = document.getElementById('country-select');
+        const refreshButton = document.getElementById('refresh-button');
+        const infoDisplay = {
+            countryName: document.getElementById('country-name').querySelector('span'),
+            liveTime: document.getElementById('live-time'), // Specific span for live time
+            date: document.getElementById('date').querySelector('span'),
+            timezone: document.getElementById('timezone').querySelector('span'),
+            weatherContainer: document.getElementById('weather').querySelector('span'),
+            weatherEmoji: document.getElementById('weather').querySelector('.weather-emoji'),
+            weatherText: document.getElementById('weather').querySelector('.weather-text'),
+            temperature: document.getElementById('temperature').querySelector('span')
+        };
+        const errorMessageDiv = document.getElementById('error-message');
+        const loader = document.querySelector('.loader');
+        const bodyElement = document.body;
+
+        // 🚨🚨 --- EXTREME SECURITY WARNING --- 🚨🚨
+        // This API Key (`ef8db...`) is INSECURE and PUBLIC.
+        // DO NOT use it long-term. Replace with your OWN PRIVATE key.
+        const apiKey = 'ef8dbad08a9d11f1d31f3d50305c2644'; // <-- !! REPLACE !!
+
+        let currentSelectedTimezone = null;
+        let currentSelectedCountryName = null; // Store full name for refresh
+        let currentSelectedData = null; // Store the whole selected data object
+        let clockIntervalId = null; // To store the interval ID
+
+        // Function to get flag emoji (same as before)
+        function getFlagEmoji(countryCode) {
+            if (!countryCode || countryCode.length !== 2) return '';
+            const codePoints = countryCode.toUpperCase().split('').map(char => 127397 + char.charCodeAt(0));
+            try { return String.fromCodePoint(...codePoints); }
+            catch (e) { console.warn(`Could not create flag for ${countryCode}`, e); return ''; }
+        }
+
+        // Country list (same as before)
+        const countries = [
+           { name: "Afghanistan", timezone: "Asia/Kabul", countryCode: "AF" },
+           { name: "Albania", timezone: "Europe/Tirane", countryCode: "AL" },
+           { name: "Algeria", timezone: "Africa/Algiers", countryCode: "DZ" },
+           { name: "Andorra", timezone: "Europe/Andorra", countryCode: "AD" },
+           { name: "Angola", timezone: "Africa/Luanda", countryCode: "AO" },
+           { name: "Antigua and Barbuda", timezone: "America/Antigua", countryCode: "AG" },
+           { name: "Argentina (Buenos Aires)", timezone: "America/Argentina/Buenos_Aires", countryCode: "AR" },
+           { name: "Armenia", timezone: "Asia/Yerevan", countryCode: "AM" },
+           { name: "Australia (Sydney)", timezone: "Australia/Sydney", countryCode: "AU" },
+           { name: "Australia (Perth)", timezone: "Australia/Perth", countryCode: "AU" },
+           { name: "Austria", timezone: "Europe/Vienna", countryCode: "AT" },
+           { name: "Azerbaijan", timezone: "Asia/Baku", countryCode: "AZ" },
+           { name: "Bahamas", timezone: "America/Nassau", countryCode: "BS" },
+           { name: "Bahrain", timezone: "Asia/Bahrain", countryCode: "BH" },
+           { name: "Bangladesh", timezone: "Asia/Dhaka", countryCode: "BD" },
+           { name: "Barbados", timezone: "America/Barbados", countryCode: "BB" },
+           { name: "Belarus", timezone: "Europe/Minsk", countryCode: "BY" },
+           { name: "Belgium", timezone: "Europe/Brussels", countryCode: "BE" },
+           { name: "Belize", timezone: "America/Belize", countryCode: "BZ" },
+           { name: "Benin", timezone: "Africa/Porto-Novo", countryCode: "BJ" },
+           { name: "Bhutan", timezone: "Asia/Thimphu", countryCode: "BT" },
+           { name: "Bolivia", timezone: "America/La_Paz", countryCode: "BO" },
+           { name: "Bosnia and Herzegovina", timezone: "Europe/Sarajevo", countryCode: "BA" },
+           { name: "Botswana", timezone: "Africa/Gaborone", countryCode: "BW" },
+           { name: "Brazil (Sao Paulo)", timezone: "America/Sao_Paulo", countryCode: "BR" },
+           { name: "Brazil (Manaus)", timezone: "America/Manaus", countryCode: "BR" },
+           { name: "Brunei", timezone: "Asia/Brunei", countryCode: "BN" },
+           { name: "Bulgaria", timezone: "Europe/Sofia", countryCode: "BG" },
+           { name: "Burkina Faso", timezone: "Africa/Ouagadougou", countryCode: "BF" },
+           { name: "Burundi", timezone: "Africa/Bujumbura", countryCode: "BI" },
+           { name: "Cabo Verde", timezone: "Atlantic/Cape_Verde", countryCode: "CV" },
+           { name: "Cambodia", timezone: "Asia/Phnom_Penh", countryCode: "KH" },
+           { name: "Cameroon", timezone: "Africa/Douala", countryCode: "CM" },
+           { name: "Canada (Toronto)", timezone: "America/Toronto", countryCode: "CA" },
+           { name: "Canada (Vancouver)", timezone: "America/Vancouver", countryCode: "CA" },
+           { name: "Canada (Halifax)", timezone: "America/Halifax", countryCode: "CA" },
+           { name: "Central African Republic", timezone: "Africa/Bangui", countryCode: "CF" },
+           { name: "Chad", timezone: "Africa/Ndjamena", countryCode: "TD" },
+           { name: "Chile (Santiago)", timezone: "America/Santiago", countryCode: "CL" },
+           { name: "China (Shanghai)", timezone: "Asia/Shanghai", countryCode: "CN" },
+           { name: "China (Urumqi)", timezone: "Asia/Urumqi", countryCode: "CN" },
+           { name: "Colombia", timezone: "America/Bogota", countryCode: "CO" },
+           { name: "Comoros", timezone: "Indian/Comoro", countryCode: "KM" },
+           { name: "Congo (Brazzaville)", timezone: "Africa/Brazzaville", countryCode: "CG" },
+           { name: "Congo (Kinshasa)", timezone: "Africa/Kinshasa", countryCode: "CD" },
+           { name: "Costa Rica", timezone: "America/Costa_Rica", countryCode: "CR" },
+           { name: "Croatia", timezone: "Europe/Zagreb", countryCode: "HR" },
+           { name: "Cuba", timezone: "America/Havana", countryCode: "CU" },
+           { name: "Cyprus", timezone: "Asia/Nicosia", countryCode: "CY" },
+           { name: "Czech Republic", timezone: "Europe/Prague", countryCode: "CZ" },
+           { name: "Denmark", timezone: "Europe/Copenhagen", countryCode: "DK" },
+           { name: "Djibouti", timezone: "Africa/Djibouti", countryCode: "DJ" },
+           { name: "Dominica", timezone: "America/Dominica", countryCode: "DM" },
+           { name: "Dominican Republic", timezone: "America/Santo_Domingo", countryCode: "DO" },
+           { name: "Ecuador", timezone: "America/Guayaquil", countryCode: "EC" },
+           { name: "Egypt", timezone: "Africa/Cairo", countryCode: "EG" },
+           { name: "El Salvador", timezone: "America/El_Salvador", countryCode: "SV" },
+           { name: "Equatorial Guinea", timezone: "Africa/Malabo", countryCode: "GQ" },
+           { name: "Eritrea", timezone: "Africa/Asmara", countryCode: "ER" },
+           { name: "Estonia", timezone: "Europe/Tallinn", countryCode: "EE" },
+           { name: "Eswatini", timezone: "Africa/Mbabane", countryCode: "SZ" },
+           { name: "Ethiopia", timezone: "Africa/Addis_Ababa", countryCode: "ET" },
+           { name: "Fiji", timezone: "Pacific/Fiji", countryCode: "FJ" },
+           { name: "Finland", timezone: "Europe/Helsinki", countryCode: "FI" },
+           { name: "France", timezone: "Europe/Paris", countryCode: "FR" },
+           { name: "Gabon", timezone: "Africa/Libreville", countryCode: "GA" },
+           { name: "Gambia", timezone: "Africa/Banjul", countryCode: "GM" },
+           { name: "Georgia", timezone: "Asia/Tbilisi", countryCode: "GE" },
+           { name: "Germany", timezone: "Europe/Berlin", countryCode: "DE" },
+           { name: "Ghana", timezone: "Africa/Accra", countryCode: "GH" },
+           { name: "Greece", timezone: "Europe/Athens", countryCode: "GR" },
+           { name: "Grenada", timezone: "America/Grenada", countryCode: "GD" },
+           { name: "Guatemala", timezone: "America/Guatemala", countryCode: "GT" },
+           { name: "Guinea", timezone: "Africa/Conakry", countryCode: "GN" },
+           { name: "Guinea-Bissau", timezone: "Africa/Bissau", countryCode: "GW" },
+           { name: "Guyana", timezone: "America/Guyana", countryCode: "GY" },
+           { name: "Haiti", timezone: "America/Port-au-Prince", countryCode: "HT" },
+           { name: "Honduras", timezone: "America/Tegucigalpa", countryCode: "HN" },
+           { name: "Hungary", timezone: "Europe/Budapest", countryCode: "HU" },
+           { name: "Iceland", timezone: "Atlantic/Reykjavik", countryCode: "IS" },
+           { name: "India (Kolkata)", timezone: "Asia/Kolkata", countryCode: "IN" },
+           { name: "India (Delhi)", timezone: "Asia/Kolkata", countryCode: "IN", specificLocation: "Delhi" },
+           { name: "Indonesia (Jakarta)", timezone: "Asia/Jakarta", countryCode: "ID" },
+           { name: "Indonesia (Jayapura)", timezone: "Asia/Jayapura", countryCode: "ID" },
+           { name: "Iran", timezone: "Asia/Tehran", countryCode: "IR" },
+           { name: "Iraq", timezone: "Asia/Baghdad", countryCode: "IQ" },
+           { name: "Ireland", timezone: "Europe/Dublin", countryCode: "IE" },
+           { name: "Israel", timezone: "Asia/Jerusalem", countryCode: "IL" },
+           { name: "Italy", timezone: "Europe/Rome", countryCode: "IT" },
+           { name: "Jamaica", timezone: "America/Jamaica", countryCode: "JM" },
+           { name: "Japan", timezone: "Asia/Tokyo", countryCode: "JP" },
+           { name: "Jordan", timezone: "Asia/Amman", countryCode: "JO" },
+           { name: "Kazakhstan (Almaty)", timezone: "Asia/Almaty", countryCode: "KZ" },
+           { name: "Kazakhstan (Oral)", timezone: "Asia/Oral", countryCode: "KZ" },
+           { name: "Kenya", timezone: "Africa/Nairobi", countryCode: "KE" },
+           { name: "Kiribati", timezone: "Pacific/Tarawa", countryCode: "KI" },
+           { name: "Korea, North", timezone: "Asia/Pyongyang", countryCode: "KP" },
+           { name: "Korea, South", timezone: "Asia/Seoul", countryCode: "KR" },
+           { name: "Kuwait", timezone: "Asia/Kuwait", countryCode: "KW" },
+           { name: "Kyrgyzstan", timezone: "Asia/Bishkek", countryCode: "KG" },
+           { name: "Laos", timezone: "Asia/Vientiane", countryCode: "LA" },
+           { name: "Latvia", timezone: "Europe/Riga", countryCode: "LV" },
+           { name: "Lebanon", timezone: "Asia/Beirut", countryCode: "LB" },
+           { name: "Lesotho", timezone: "Africa/Maseru", countryCode: "LS" },
+           { name: "Liberia", timezone: "Africa/Monrovia", countryCode: "LR" },
+           { name: "Libya", timezone: "Africa/Tripoli", countryCode: "LY" },
+           { name: "Liechtenstein", timezone: "Europe/Vaduz", countryCode: "LI" },
+           { name: "Lithuania", timezone: "Europe/Vilnius", countryCode: "LT" },
+           { name: "Luxembourg", timezone: "Europe/Luxembourg", countryCode: "LU" },
+           { name: "Madagascar", timezone: "Indian/Antananarivo", countryCode: "MG" },
+           { name: "Malawi", timezone: "Africa/Blantyre", countryCode: "MW" },
+           { name: "Malaysia", timezone: "Asia/Kuala_Lumpur", countryCode: "MY" },
+           { name: "Maldives", timezone: "Indian/Maldives", countryCode: "MV" },
+           { name: "Mali", timezone: "Africa/Bamako", countryCode: "ML" },
+           { name: "Malta", timezone: "Europe/Malta", countryCode: "MT" },
+           { name: "Marshall Islands", timezone: "Pacific/Majuro", countryCode: "MH" },
+           { name: "Mauritania", timezone: "Africa/Nouakchott", countryCode: "MR" },
+           { name: "Mauritius", timezone: "Indian/Mauritius", countryCode: "MU" },
+           { name: "Mexico (Mexico City)", timezone: "America/Mexico_City", countryCode: "MX" },
+           { name: "Mexico (Tijuana)", timezone: "America/Tijuana", countryCode: "MX" },
+           { name: "Micronesia", timezone: "Pacific/Pohnpei", countryCode: "FM" },
+           { name: "Moldova", timezone: "Europe/Chisinau", countryCode: "MD" },
+           { name: "Monaco", timezone: "Europe/Monaco", countryCode: "MC" },
+           { name: "Mongolia (Ulaanbaatar)", timezone: "Asia/Ulaanbaatar", countryCode: "MN" },
+           { name: "Montenegro", timezone: "Europe/Podgorica", countryCode: "ME" },
+           { name: "Morocco", timezone: "Africa/Casablanca", countryCode: "MA" },
+           { name: "Mozambique", timezone: "Africa/Maputo", countryCode: "MZ" },
+           { name: "Myanmar (Burma)", timezone: "Asia/Yangon", countryCode: "MM" },
+           { name: "Namibia", timezone: "Africa/Windhoek", countryCode: "NA" },
+           { name: "Nauru", timezone: "Pacific/Nauru", countryCode: "NR" },
+           { name: "Nepal", timezone: "Asia/Kathmandu", countryCode: "NP" },
+           { name: "Netherlands", timezone: "Europe/Amsterdam", countryCode: "NL" },
+           { name: "New Zealand", timezone: "Pacific/Auckland", countryCode: "NZ" },
+           { name: "Nicaragua", timezone: "America/Managua", countryCode: "NI" },
+           { name: "Niger", timezone: "Africa/Niamey", countryCode: "NE" },
+           { name: "Nigeria", timezone: "Africa/Lagos", countryCode: "NG" },
+           { name: "North Macedonia", timezone: "Europe/Skopje", countryCode: "MK" },
+           { name: "Norway", timezone: "Europe/Oslo", countryCode: "NO" },
+           { name: "Oman", timezone: "Asia/Muscat", countryCode: "OM" },
+           { name: "Pakistan", timezone: "Asia/Karachi", countryCode: "PK" },
+           { name: "Palau", timezone: "Pacific/Palau", countryCode: "PW" },
+           { name: "Palestine", timezone: "Asia/Gaza", countryCode: "PS" },
+           { name: "Panama", timezone: "America/Panama", countryCode: "PA" },
+           { name: "Papua New Guinea", timezone: "Pacific/Port_Moresby", countryCode: "PG" },
+           { name: "Paraguay", timezone: "America/Asuncion", countryCode: "PY" },
+           { name: "Peru", timezone: "America/Lima", countryCode: "PE" },
+           { name: "Philippines", timezone: "Asia/Manila", countryCode: "PH" },
+           { name: "Poland", timezone: "Europe/Warsaw", countryCode: "PL" },
+           { name: "Portugal", timezone: "Europe/Lisbon", countryCode: "PT" },
+           { name: "Qatar", timezone: "Asia/Qatar", countryCode: "QA" },
+           { name: "Romania", timezone: "Europe/Bucharest", countryCode: "RO" },
+           { name: "Russia (Moscow)", timezone: "Europe/Moscow", countryCode: "RU" },
+           { name: "Russia (Vladivostok)", timezone: "Asia/Vladivostok", countryCode: "RU" },
+           { name: "Russia (Yakutsk)", timezone: "Asia/Yakutsk", countryCode: "RU" },
+           { name: "Rwanda", timezone: "Africa/Kigali", countryCode: "RW" },
+           { name: "Saint Kitts and Nevis", timezone: "America/St_Kitts", countryCode: "KN" },
+           { name: "Saint Lucia", timezone: "America/St_Lucia", countryCode: "LC" },
+           { name: "Saint Vincent and the Grenadines", timezone: "America/St_Vincent", countryCode: "VC" },
+           { name: "Samoa", timezone: "Pacific/Apia", countryCode: "WS" },
+           { name: "San Marino", timezone: "Europe/San_Marino", countryCode: "SM" },
+           { name: "Sao Tome and Principe", timezone: "Africa/Sao_Tome", countryCode: "ST" },
+           { name: "Saudi Arabia", timezone: "Asia/Riyadh", countryCode: "SA" },
+           { name: "Senegal", timezone: "Africa/Dakar", countryCode: "SN" },
+           { name: "Serbia", timezone: "Europe/Belgrade", countryCode: "RS" },
+           { name: "Seychelles", timezone: "Indian/Mahe", countryCode: "SC" },
+           { name: "Sierra Leone", timezone: "Africa/Freetown", countryCode: "SL" },
+           { name: "Singapore", timezone: "Asia/Singapore", countryCode: "SG" },
+           { name: "Slovakia", timezone: "Europe/Bratislava", countryCode: "SK" },
+           { name: "Slovenia", timezone: "Europe/Ljubljana", countryCode: "SI" },
+           { name: "Solomon Islands", timezone: "Pacific/Guadalcanal", countryCode: "SB" },
+           { name: "Somalia", timezone: "Africa/Mogadishu", countryCode: "SO" },
+           { name: "South Africa", timezone: "Africa/Johannesburg", countryCode: "ZA" },
+           { name: "South Sudan", timezone: "Africa/Juba", countryCode: "SS" },
+           { name: "Spain", timezone: "Europe/Madrid", countryCode: "ES" },
+           { name: "Sri Lanka", timezone: "Asia/Colombo", countryCode: "LK" },
+           { name: "Sudan", timezone: "Africa/Khartoum", countryCode: "SD" },
+           { name: "Suriname", timezone: "America/Paramaribo", countryCode: "SR" },
+           { name: "Sweden", timezone: "Europe/Stockholm", countryCode: "SE" },
+           { name: "Switzerland", timezone: "Europe/Zurich", countryCode: "CH" },
+           { name: "Syria", timezone: "Asia/Damascus", countryCode: "SY" },
+           { name: "Taiwan", timezone: "Asia/Taipei", countryCode: "TW" },
+           { name: "Tajikistan", timezone: "Asia/Dushanbe", countryCode: "TJ" },
+           { name: "Tanzania", timezone: "Africa/Dar_es_Salaam", countryCode: "TZ" },
+           { name: "Thailand", timezone: "Asia/Bangkok", countryCode: "TH" },
+           { name: "Timor-Leste", timezone: "Asia/Dili", countryCode: "TL" },
+           { name: "Togo", timezone: "Africa/Lome", countryCode: "TG" },
+           { name: "Tonga", timezone: "Pacific/Tongatapu", countryCode: "TO" },
+           { name: "Trinidad and Tobago", timezone: "America/Port_of_Spain", countryCode: "TT" },
+           { name: "Tunisia", timezone: "Africa/Tunis", countryCode: "TN" },
+           { name: "Turkey", timezone: "Europe/Istanbul", countryCode: "TR" },
+           { name: "Turkmenistan", timezone: "Asia/Ashgabat", countryCode: "TM" },
+           { name: "Tuvalu", timezone: "Pacific/Funafuti", countryCode: "TV" },
+           { name: "Uganda", timezone: "Africa/Kampala", countryCode: "UG" },
+           { name: "Ukraine", timezone: "Europe/Kyiv", countryCode: "UA" },
+           { name: "United Arab Emirates", timezone: "Asia/Dubai", countryCode: "AE" },
+           { name: "United Kingdom", timezone: "Europe/London", countryCode: "GB" },
+           { name: "United States (New York)", timezone: "America/New_York", countryCode: "US" },
+           { name: "United States (Chicago)", timezone: "America/Chicago", countryCode: "US" },
+           { name: "United States (Denver)", timezone: "America/Denver", countryCode: "US" },
+           { name: "United States (Los Angeles)", timezone: "America/Los_Angeles", countryCode: "US" },
+           { name: "United States (Anchorage)", timezone: "America/Anchorage", countryCode: "US" },
+           { name: "United States (Honolulu)", timezone: "Pacific/Honolulu", countryCode: "US" },
+           { name: "Uruguay", timezone: "America/Montevideo", countryCode: "UY" },
+           { name: "Uzbekistan", timezone: "Asia/Tashkent", countryCode: "UZ" },
+           { name: "Vanuatu", timezone: "Pacific/Efate", countryCode: "VU" },
+           { name: "Vatican City", timezone: "Europe/Vatican", countryCode: "VA" },
+           { name: "Venezuela", timezone: "America/Caracas", countryCode: "VE" },
+           { name: "Vietnam", timezone: "Asia/Ho_Chi_Minh", countryCode: "VN" },
+           { name: "Yemen", timezone: "Asia/Aden", countryCode: "YE" },
+           { name: "Zambia", timezone: "Africa/Lusaka", countryCode: "ZM" },
+           { name: "Zimbabwe", timezone: "Africa/Harare", countryCode: "ZW" },
+        ];
+        countries.forEach(country => { country.flag = getFlagEmoji(country.countryCode); }); // Add flags
+
+        const weatherConditions = ['clear', 'clouds', 'rain', 'drizzle', 'snow', 'thunderstorm', 'mist', 'fog', 'haze', 'smoke', 'dust', 'sand', 'ash', 'squall', 'tornado'];
+
+        // Populate dropdown
+        function populateDropdown() {
+            countries.sort((a, b) => a.name.localeCompare(b.name));
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify({
+                    timezone: country.timezone,
+                    name: country.name,
+                    countryCode: country.countryCode,
+                    specificLocation: country.specificLocation || null
+                });
+                option.textContent = `${country.flag} ${country.name}`; // Add flag
+                countrySelect.appendChild(option);
+            });
+        }
+
+        // Get weather emoji (same as before)
+        function getWeatherEmoji(weatherMain, weatherDesc) {
+             const descLower = weatherDesc.toLowerCase();
+            switch (weatherMain.toLowerCase()) {
+                case 'clear': return '☀️';
+                case 'clouds':
+                    if (descLower.includes('few clouds')) return '🌤️';
+                    if (descLower.includes('scattered clouds')) return '🌥️';
+                    if (descLower.includes('broken clouds')) return '☁️';
+                    if (descLower.includes('overcast clouds')) return '☁️';
+                    return '☁️';
+                case 'drizzle': return '💧';
+                case 'rain':
+                     if (descLower.includes('light rain')) return '🌦️';
+                     if (descLower.includes('moderate rain')) return '🌧️';
+                     if (descLower.includes('heavy intensity rain')) return '🌧️';
+                     if (descLower.includes('very heavy rain')) return ' torrential rain';
+                     if (descLower.includes('freezing rain')) return '🥶';
+                     return '🌧️';
+                case 'thunderstorm': return '⛈️';
+                case 'snow': return '❄️';
+                case 'mist': return '🌫️'; case 'smoke': return '💨'; case 'haze': return '🌫️';
+                case 'dust': return '💨'; case 'fog': return '🌫️'; case 'sand': return '💨';
+                case 'ash': return '🌋'; case 'squall': return '💨'; case 'tornado': return '🌪️';
+                default: return '';
+            }
+        }
+
+        // Function to start the live clock interval
+        function startLiveClockInterval() {
+            // Clear any existing interval
+            if (clockIntervalId) {
+                clearInterval(clockIntervalId);
+            }
+            // Start new interval if a timezone is selected
+            if (currentSelectedTimezone) {
+                clockIntervalId = setInterval(() => {
+                    try {
+                        const now = new Date();
+                        const timeOptions = { timeZone: currentSelectedTimezone, hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+                        const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
+                        infoDisplay.liveTime.textContent = timeString; // Update only the time span
+                    } catch (e) {
+                         // Stop interval if timezone becomes invalid during runtime (unlikely but possible)
+                        console.error("Error updating live time:", e);
+                         clearInterval(clockIntervalId);
+                         infoDisplay.liveTime.textContent = "Error";
+                    }
+                }, 1000); // Update every second
+            }
+        }
+
+
+        // Update DATE and initial TIME display (called on select/refresh)
+        function updateTimeDate(selectedTimezone, countryName) {
+            // Don't clear the whole display here, let clearInfo handle it
+            errorMessageDiv.textContent = '';
+            let success = false; // Track if date/time update was successful
+            try {
+                const now = new Date();
+                const timeOptions = { timeZone: selectedTimezone, hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+                const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(now); // Initial time
+                const dateOptions = { timeZone: selectedTimezone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateString = new Intl.DateTimeFormat('en-US', dateOptions).format(now); // Date
+
+                infoDisplay.countryName.textContent = countryName.includes(' (') ? countryName.split(' (')[0] : countryName;
+                infoDisplay.liveTime.textContent = timeString; // Set initial time
+                infoDisplay.date.textContent = dateString; // Set date
+                infoDisplay.timezone.textContent = selectedTimezone;
+                success = true; // Mark as successful
+
+            } catch (error) {
+                console.error("Time/Date Error:", error);
+                if (error instanceof RangeError) {
+                    infoDisplay.liveTime.textContent = "Invalid TZ";
+                    infoDisplay.date.textContent = "Invalid Timezone";
+                    displayError(`Invalid timezone specified: ${selectedTimezone}`);
+                } else {
+                    infoDisplay.liveTime.textContent = "Error";
+                    infoDisplay.date.textContent = "Error";
+                    displayError("Unable to load time/date.");
+                }
+                infoDisplay.timezone.textContent = selectedTimezone;
+            }
+             return success; // Return success status
+        }
+
+        // Fetch weather information (mostly same, but added refresh button disable/enable)
+        async function fetchWeather(selectedTimezone, countryCode, specificLocation) {
+            infoDisplay.weatherEmoji.textContent = '';
+            infoDisplay.weatherText.textContent = 'Loading...';
+            infoDisplay.temperature.textContent = 'Loading...';
+            errorMessageDiv.textContent = '';
+            loader.classList.remove('hidden');
+            refreshButton.disabled = true; // Disable button during fetch
+
+            if (!apiKey || apiKey === 'YOUR_OPENWEATHERMAP_API_KEY') {
+                 displayError("OpenWeatherMap API Key is not configured.");
+                 clearWeatherInfoOnError("API Key Missing");
+                 resetBackground();
+                 loader.classList.add('hidden');
+                 refreshButton.disabled = true; // Keep disabled if no key
+                 if(apiKey === 'ef8dbad08a9d11f1d31f3d50305c2644'){
+                    console.warn("Using publicly shared API Key (ef8db...). Replace it!");
+                    displayError("WARNING: Using insecure API Key. Replace it!");
+                 }
+                 return;
+            }
+            // ... (rest of the location logic is the same) ...
+            let locationQuery = '';
+            if (specificLocation) { locationQuery = `${specificLocation},${countryCode}`; }
+            else {
+                const parts = selectedTimezone.split('/');
+                if (parts.length > 1) { locationQuery = `${parts[parts.length - 1].replace(/_/g, ' ')},${countryCode}`; }
+                else {
+                    const baseCountryName = infoDisplay.countryName.textContent;
+                    if (baseCountryName && baseCountryName !== '-' && !baseCountryName.includes('(')) { locationQuery = `${baseCountryName},${countryCode}`; }
+                    else { locationQuery = countryCode; }
+                }
+            }
+            if (!locationQuery) {
+                 displayError(`Could not determine location for weather (TZ: ${selectedTimezone}).`);
+                 clearWeatherInfoOnError("Location Error");
+                 resetBackground();
+                 loader.classList.add('hidden');
+                 refreshButton.disabled = false; // Re-enable button on location error
+                 return;
+             }
+
+            const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(locationQuery)}&appid=${apiKey}&units=metric&lang=en`;
+
+            try {
+                const response = await fetch(weatherUrl);
+                const responseBody = await response.text();
+                if (!response.ok) {
+                    let errorData; try { errorData = JSON.parse(responseBody); } catch (e) { errorData = { message: responseBody || `HTTP error ${response.status}` }; }
+                    let userMessage = `API Error (${response.status}): ${errorData.message || 'Unknown'}`;
+                    if (response.status === 401) { userMessage = `API Error (${response.status}): Invalid API Key. Check key '${apiKey.substring(0,4)}...'`; }
+                    else if (response.status === 404) { userMessage = `API Error (${response.status}): Location '${locationQuery}' not found.`; }
+                    else if (response.status === 429) { userMessage = `API Error (${response.status}): Rate limit exceeded. Wait.`; }
+                    console.error("API Error:", responseBody); resetBackground(); throw new Error(userMessage);
+                }
+                const data = JSON.parse(responseBody);
+                const weatherMain = data.weather?.[0]?.main ?? 'N/A';
+                const weatherDesc = data.weather?.[0]?.description ?? 'Not available';
+                const temp = data.main?.temp !== undefined ? `${data.main.temp.toFixed(1)} °C` : 'N/A';
+
+                infoDisplay.weatherEmoji.textContent = getWeatherEmoji(weatherMain, weatherDesc);
+                infoDisplay.weatherText.textContent = weatherDesc.charAt(0).toUpperCase() + weatherDesc.slice(1);
+                infoDisplay.temperature.textContent = temp;
+                updateBackground(weatherMain);
+
+            } catch (error) {
+                console.error("Weather Fetch Error:", error);
+                displayError(`Weather Failed: ${error.message}`);
+                clearWeatherInfoOnError("Fetch Error");
+                resetBackground();
+            } finally {
+                loader.classList.add('hidden');
+                refreshButton.disabled = false; // Re-enable button after fetch attempt
+            }
+        }
+
+        // Update background (same as before)
+        function updateBackground(weatherMain) { /* ... same ... */
+             const condition = weatherMain ? weatherMain.toLowerCase() : 'default';
+             weatherConditions.forEach(cond => bodyElement.classList.remove(`weather-${cond}`));
+             if (weatherConditions.includes(condition)) { bodyElement.classList.add(`weather-${condition}`); }
+             else { resetBackground(); }
+         }
+        function resetBackground() { /* ... same ... */
+             weatherConditions.forEach(cond => bodyElement.classList.remove(`weather-${cond}`));
+         }
+
+
+        // Event listener for dropdown change
+        countrySelect.addEventListener('change', (event) => {
+            const selectedValue = event.target.value;
+            if (clockIntervalId) clearInterval(clockIntervalId); // Clear previous clock
+
+            if (selectedValue) {
+                try {
+                    currentSelectedData = JSON.parse(selectedValue); // Store full data
+                    currentSelectedTimezone = currentSelectedData.timezone; // Update global timezone
+                    currentSelectedCountryName = currentSelectedData.name; // Update global name
+
+                    clearInfo("Loading..."); // Clear display first
+                    refreshButton.disabled = true; // Disable refresh initially
+
+                    // Update Date and initial Time
+                    const dateTimeSuccess = updateTimeDate(currentSelectedData.timezone, currentSelectedData.name);
+
+                    // Fetch Weather
+                    fetchWeather(currentSelectedData.timezone, currentSelectedData.countryCode, currentSelectedData.specificLocation);
+
+                    // Start live clock ONLY if date/time update was successful
+                    if (dateTimeSuccess) {
+                        startLiveClockInterval();
+                    } else {
+                         refreshButton.disabled = false; // Re-enable if date/time failed
+                    }
+
+                } catch (e) {
+                    console.error("Error processing selection:", e);
+                    displayError("Error processing selection.");
+                    clearInfo("-", false);
+                    resetBackground();
+                    currentSelectedTimezone = null; // Reset global state
+                    currentSelectedCountryName = null;
+                    currentSelectedData = null;
+                    refreshButton.disabled = true; // Disable refresh on error
+                }
+            } else {
+                 // Handle "Select..." option
+                 clearInfo("-", false);
+                 resetBackground();
+                 currentSelectedTimezone = null; // Reset global state
+                 currentSelectedCountryName = null;
+                 currentSelectedData = null;
+                 refreshButton.disabled = true; // Disable refresh button
+            }
+        });
+
+        // Event listener for refresh button
+        refreshButton.addEventListener('click', () => {
+            if (currentSelectedData) { // Check if a country is selected
+                console.log("Refreshing data for:", currentSelectedCountryName);
+                // Clear previous errors
+                errorMessageDiv.textContent = '';
+                // Indicate loading
+                 clearInfo("Refreshing...", true); // Keep country name, show loading elsewhere
+                 refreshButton.disabled = true; // Disable during refresh
+
+                 // Re-fetch date/time and weather
+                 const dateTimeSuccess = updateTimeDate(currentSelectedData.timezone, currentSelectedData.name);
+                 fetchWeather(currentSelectedData.timezone, currentSelectedData.countryCode, currentSelectedData.specificLocation);
+
+                 // Restart clock interval if date/time was successful
+                  if (dateTimeSuccess) {
+                     startLiveClockInterval();
+                  } else {
+                     if(clockIntervalId) clearInterval(clockIntervalId); // Stop clock if date/time failed
+                     refreshButton.disabled = false; // Re-enable if failed
+                  }
+            } else {
+                console.log("Refresh clicked but no country selected.");
+                 // Optionally show a message, but disabling the button is usually enough
+            }
+        });
+
+
+       // Helper function to clear display fields
+       function clearInfo(message = "-", keepCountryName = false) {
+           if (!keepCountryName) {
+                infoDisplay.countryName.textContent = message === "Loading..." || message === "Refreshing..." ? "-" : message;
+           }
+            // Always clear/update these fields
+            infoDisplay.liveTime.textContent = message; // Target live time span
+            infoDisplay.date.textContent = message;
+            infoDisplay.timezone.textContent = message;
+            infoDisplay.weatherEmoji.textContent = '';
+            infoDisplay.weatherText.textContent = message;
+            infoDisplay.temperature.textContent = message;
+            errorMessageDiv.textContent = ''; // Clear errors
+
+           if (message !== "Loading..." && message !== "Refreshing...") {
+               loader.classList.add('hidden');
+           } else {
+                loader.classList.remove('hidden'); // Show loader
+           }
+       }
+
+        // Helper function to clear weather fields on error (same as before)
+        function clearWeatherInfoOnError(errorType = "Error") { /* ... same ... */
+              infoDisplay.weatherEmoji.textContent = '⚠️';
+              infoDisplay.weatherText.textContent = errorType;
+              infoDisplay.temperature.textContent = errorType;
+         }
+       // Helper function to display errors (same as before)
+       function displayError(message) { /* ... same ... */
+            errorMessageDiv.textContent = `${message}`;
+            loader.classList.add('hidden');
+        }
+
+        // Initialize the app
+        populateDropdown();
+        clearInfo("-", false);
+        resetBackground();
+        // Refresh button starts disabled until a country is selected
+        refreshButton.disabled = true;
+
+    </script>
+
+</body>
+</html>
