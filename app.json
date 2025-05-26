@@ -1,0 +1,11 @@
+[
+  {
+    "id": "app1",
+    "name": "FM RADIO",
+    "logoUrl": "https://archive.org/download/fm-radio_20250526/FM%20radio%20.jpg",
+    "downloadUrl": "https://ia600408.us.archive.org/29/items/base_20250526/base.apk",
+    "description": " check my first app",
+    "version": "1.0.0",
+    "developer": "Yash Inc."
+  }
+]
