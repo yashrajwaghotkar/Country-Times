@@ -1,0 +1,16 @@
+{
+  "firebase": {
+    "apiKey": "AIzaSyDjm4AKfY720T5brext8d85zqxo0iW4zT8",
+    "authDomain": "lister-99079.firebaseapp.com",
+    "databaseURL": "https://lister-99079-default-rtdb.firebaseio.com",
+    "projectId": "lister-99079",
+    "storageBucket": "lister-99079.firebasestorage.app",
+    "messagingSenderId": "639357191422",
+    "appId": "1:639357191422:web:85bc46f596be1807f311af",
+    "measurementId": "G-VYZ9X3ZWKH"
+  },
+  "googleSheets": {
+    "sheetId": "1eCXsyarPBetf6Z-0SawMnKbKicN3k4obahYtHOH_Q2I",
+    "apiKey": "AIzaSyCEzlwBxRNr6AmxC5vNW8jb_QHStNx2oWQ"
+  }
+}
